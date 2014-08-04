@@ -28,7 +28,7 @@
                {:id "prod"
                 :source-paths ["src/cljs"]
                 :compiler {:output-to "resources/public/js/clojuroids.min.js"
-                           :source-map "resources/public/js/clojuroids.min.js.map"
+                           ;:source-map "resources/public/js/clojuroids.min.js.map"
                            :externs ["resources/development/js/externs.js"]
                            :optimizations :advanced
                            :pretty-print false}}]})
