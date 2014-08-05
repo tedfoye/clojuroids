@@ -1,10 +1,10 @@
-(ns roids.ship
-  (:require [roids.util :refer [degree-mask width height cos sin]]))
+(ns clojuroids.ship
+  (:require [clojuroids.util :refer [degree-mask width height cos sin]]))
 
 (def forward-thrust 0.5)
 (def reverse-thrust 0.5)
-(def max-forward 20)
-(def max-reverse -20)
+(def max-forward 10)
+(def max-reverse -10)
 
 (defn create-ship [posx posy vel angle rot]
   {:type :ship
@@ -15,7 +15,6 @@
    :angle angle 
    :rot rot
    :thrust 0
-   :thrust-angle 0
    })
 
 (defn create-shot [ship]
@@ -32,7 +31,7 @@
 
 (defn update-velocity [ship]
   (let [[vel-x vel-y] (:vel ship)
-        angle (:thrust-angle ship)
+        angle (:angle ship)
         thrust (:thrust ship)
         [x y] [(+ vel-x (* thrust (cos angle))) (+ vel-y (* thrust (sin angle)))]
         x (if (> x max-forward) max-forward x)
@@ -41,41 +40,16 @@
         y (if (< y max-reverse) max-reverse y)]
     (assoc ship :vel [x y])))
 
-(defn update-position [ship]
-  (let [ship (update-velocity ship)
-        [vel-x vel-y] (:vel ship)
-        posx (+ (:posx ship) vel-x)
-        posy (+ (:posy ship) vel-y)
-        posx (if (< posx -50) (+ width 50) posx)
-        posx (if (> posx (+ width 50)) -50 posx)
-        posy (if (< posy -50) (+ height 50) posy)
-        posy (if (> posy (+ height 50)) -50 posy)
-        rot-angle (bit-and (+ (:angle ship) (:rot ship)) degree-mask)]
-    (assoc ship :posx posx :posy posy :angle rot-angle)))
-
-(defn rot-ship [ship input rot]
-  (condp = (:event input)
-    :keydown (assoc ship :rot rot)
-    :keyup (assoc ship :rot 0)
-    ship))
-
-(defn thrust [ship input vel angle-offset]
-  (if (= :keydown (:event input))
-    (assoc ship :thrust vel :thrust-angle (+ angle-offset (:angle ship)))
-    (assoc ship :thrust 0)))
-
 (defn handle-input [ship input]
-  (condp = (:keycode input) 
-    70 (create-shot ship)
-    74 (rot-ship ship input 10) 
-    76 (rot-ship ship input -10)
-    73 (thrust ship input forward-thrust 0) 
-    75 (thrust ship input reverse-thrust 256) 
-    (do (if (not= nil (:event input)) (. js/console (log (:keycode input)))) ship)))
-
-(defn update [ship input]
-  (let [ship (update-position ship)
-        ship (handle-input ship input)]
+  (condp = input 
+   [70 :key-down] (create-shot ship)
+    [74 :key-down] (assoc ship :rot 10)
+    [74 :key-up]   (assoc ship :rot 0)
+    [76 :key-down] (assoc ship :rot -10)
+    [76 :key-up]   (assoc ship :rot 0)
+    [73 :key-down] (assoc ship :thrust 0.5) 
+    [73 :key-up]   (assoc ship :thrust 0) 
+    [75 :key-down] (assoc ship :thrust -0.5) 
+    [75 :key-up]   (assoc ship :thrust 0) 
     ship))
-
 

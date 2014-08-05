@@ -1,10 +1,10 @@
-(ns roids.core
+(ns clojuroids.core
   (:require
    [cljs.core.async :refer [timeout <!]]
    [goog.events :as ge]
-   [roids.util :refer [ctx width height degree-max degree-mask cos sin clear-canvas]]
-   [roids.ship :as ship]
-   [roids.input :as input])
+   [clojuroids.util :refer [ctx width height degree-max degree-mask cos sin clear-canvas]]
+   [clojuroids.ship :as ship]
+   [clojuroids.input :as input])
   (:require-macros
    [cljs.core.async.macros :refer [alt! go go-loop]]))
 
@@ -66,7 +66,7 @@
                                      (ship/handle-input ship v)
                                      ship)))]
         (<! (timeout 33))
-        (recur (update-roids roids) (ship/update-position ship))))))
+        (recur (update-roids roids) (-> ship (ship/update-velocity) (update-roid)))))))
 
 (defn rotation [min max]
   (let [r1 (range (bit-not (dec max)) (bit-not (dec min)))
