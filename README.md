@@ -3,6 +3,12 @@ Clojuroids
 
 A [ClojureScript](http://github.com/clojure/clojurescript) version of the classic [Asteroids] (http://en.wikipedia.org/wiki/Asteroids_(video_game)) video game.
 
+Current status:
+
+* Several asteroids are created and move around the playing field
+* A ship is created and can be controlled
+* There is no hit detection yet
+
 ## Installation
 
 Download from [clojuroids](https://github.com/tedfoye/clojuroids)
@@ -14,7 +20,13 @@ You will need [leiningen](https://github.com/technomancy/leiningen) to compile a
     
 ## Instructions
 
-So far you can only view the asteroids moving around the play field.
+Click on the play area to bring focus to the canvas. 
+
+Move the ship using:
+* J - rotate left
+* L - rotate right
+* I - forward thrust
+* K - reverse thrust
 
 ## License
 
