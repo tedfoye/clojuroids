@@ -1,10 +1,9 @@
 (ns clojuroids.ship
   (:require [clojuroids.util :refer [degree-mask width height cos sin]]))
 
-(def forward-thrust 0.5)
-(def reverse-thrust 0.5)
 (def max-forward 10)
 (def max-reverse -10)
+
 
 (defn create-ship [posx posy vel angle rot]
   {:type :ship
@@ -34,10 +33,10 @@
         angle (:angle ship)
         thrust (:thrust ship)
         [x y] [(+ vel-x (* thrust (cos angle))) (+ vel-y (* thrust (sin angle)))]
-        x (if (> x max-forward) max-forward x)
-        x (if (< x max-reverse) max-reverse x)
-        y (if (> y max-forward) max-forward y)
-        y (if (< y max-reverse) max-reverse y)]
+        x (min x max-forward)
+        x (max x max-reverse)
+        y (min y max-forward)
+        y (max y max-reverse)] 
     (assoc ship :vel [x y])))
 
 (defn handle-input [ship input]

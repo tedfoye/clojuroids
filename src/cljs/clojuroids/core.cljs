@@ -52,21 +52,22 @@
     (if (not (empty? roids))
       (recur (rest roids)))))
 
+(defn request-animation-frame [roids ship]
+  (. js/window
+     (requestAnimationFrame
+      (fn [t]
+        (clear-canvas)
+        (render-roids roids)
+        (draw ship)))))
+
 (defn render [roids ship]
   (let [input-chan (input/user-input)]
     (go-loop [roids roids ship ship]
-      (. js/window
-         (requestAnimationFrame
-          (fn [t]
-            (clear-canvas)
-            (render-roids roids)
-            (draw ship))))
-      (let [ship (alt! [input-chan (timeout 1)]
-                            ([v c] (if (= c input-chan)
-                                     (ship/handle-input ship v)
-                                     ship)))]
+      (request-animation-frame roids ship)
+      (let [ship (alt! [input-chan] ([v] (ship/handle-input ship v)) :default ship)]
         (<! (timeout 33))
-        (recur (update-roids roids) (-> ship (ship/update-velocity) (update-roid)))))))
+        (recur (update-roids roids)
+               (-> ship (ship/update-velocity) (update-roid)))))))
 
 (defn rotation [min max]
   (let [r1 (range (bit-not (dec max)) (bit-not (dec min)))
