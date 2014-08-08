@@ -19,19 +19,16 @@
    :angle 0
    :rot rot})
 
-(defn update-roid [roid]
-  (let [[vel-x vel-y] (:vel roid)
-        posx (+ (:posx roid) vel-x)
-        posy (+ (:posy roid) vel-y)
+(defn update-object [obj]
+  (let [[vel-x vel-y] (:vel obj)
+        posx (+ (:posx obj) vel-x)
+        posy (+ (:posy obj) vel-y)
         posx (if (< posx -50) (+ width 50) posx)
         posx (if (> posx (+ width 50)) -50 posx)
         posy (if (< posy -50) (+ height 50) posy)
         posy (if (> posy (+ height 50)) -50 posy)
-        rot-angle (bit-and (+ (:angle roid) (:rot roid)) degree-mask)]
-    (assoc roid :posx posx :posy posy :angle rot-angle)))
-
-(defn update-roids [roids]
-  (vec (for [roid roids] (update-roid roid))))
+        rot-angle (bit-and (+ (:angle obj) (:rot obj)) degree-mask)]
+    (assoc obj :posx posx :posy posy :angle rot-angle)))
 
 (defn draw-points [roid]
   (let [points (:points roid) rot-angle (:angle roid)
@@ -43,31 +40,25 @@
 (defn draw [roid]
   (let [points (draw-points roid) [x y] (first points)]
     (doto ctx (.beginPath) (.moveTo x y))
-    (doall (map (fn [[x y]] (. ctx (lineTo x y))) (rest points)))
+    (dorun (map (fn [[x y]] (. ctx (lineTo x y))) (rest points)))
     (doto ctx (.closePath) (aset "strokeStyle" "#ffffff") (.stroke))))
-
-(defn render-roids [roids]
-  (loop [roids roids]
-    (draw (first roids))
-    (if (not (empty? roids))
-      (recur (rest roids)))))
 
 (defn request-animation-frame [roids ship]
   (. js/window
      (requestAnimationFrame
       (fn [t]
         (clear-canvas)
-        (render-roids roids)
+        (dorun (map draw roids))
         (draw ship)))))
 
 (defn render [roids ship]
   (let [input-chan (input/user-input)]
     (go-loop [roids roids ship ship]
       (request-animation-frame roids ship)
-      (let [ship (alt! [input-chan] ([v] (ship/handle-input ship v)) :default ship)]
+      (let [ship (alt! [input-chan] ([v] (ship/handle-input ship v)) :default ship)
+            ship (ship/update-velocity ship)]
         (<! (timeout 33))
-        (recur (update-roids roids)
-               (-> ship (ship/update-velocity) (update-roid)))))))
+        (recur (map update-object roids) (update-object ship))))))
 
 (defn rotation [min max]
   (let [r1 (range (bit-not (dec max)) (bit-not (dec min)))
