@@ -18,24 +18,18 @@
    :dir direction
    :angle 0
    :rot rot})
-
 (defn update-object [obj]
-  (let [[vel-x vel-y] (:vel obj)
-        posx (+ (:posx obj) vel-x)
-        posy (+ (:posy obj) vel-y)
-        posx (if (< posx -50) (+ width 50) posx)
-        posx (if (> posx (+ width 50)) -50 posx)
-        posy (if (< posy -50) (+ height 50) posy)
-        posy (if (> posy (+ height 50)) -50 posy)
-        rot-angle (bit-and (+ (:angle obj) (:rot obj)) degree-mask)]
-    (assoc obj :posx posx :posy posy :angle rot-angle)))
+  (let [{:keys [posx posy angle rot] [velx vely] :vel} obj
+        x (- (mod (+ posx 50 velx) (+ width 100)) 50) 
+        y (- (mod (+ posy 50 vely) (+ height 100)) 50)
+        rot (mod (+  angle rot) degree-mask)]
+    (assoc obj :posx x :posy y :angle rot)))
 
 (defn draw-points [roid]
-  (let [points (:points roid) rot-angle (:angle roid)
-        posx (:posx roid) posy (:posy roid)]
+  (let [{:keys [points angle posx posy]} roid]
     (for [[theta len] points]
-      [(+ posx (* len (cos theta rot-angle)))
-       (- height (+ posy (* len (sin theta rot-angle))))])))
+      [(+ posx (* len (cos theta angle)))
+       (- height (+ posy (* len (sin theta angle))))])))
 
 (defn draw [roid]
   (let [points (draw-points roid) [x y] (first points)]

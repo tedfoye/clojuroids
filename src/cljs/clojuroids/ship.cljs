@@ -17,10 +17,7 @@
    })
 
 (defn create-shot [ship]
-  (let [posx (:posx ship)
-        posy (:posy ship)
-        vel 20 
-        angle (:angle ship)]
+  (let [{:keys [posx posy angle]} ship vel 20]
     {:points [[0 1] [128 1] [256 1] [384 1]]
      :posx (+ posx (* 12 (cos angle)))
      :posy (+ posy (* 12 (sin angle)))
@@ -29,10 +26,8 @@
      :rot 0}))
 
 (defn update-velocity [ship]
-  (let [[vel-x vel-y] (:vel ship)
-        angle (:angle ship)
-        thrust (:thrust ship)
-        [x y] [(+ vel-x (* thrust (cos angle))) (+ vel-y (* thrust (sin angle)))]
+  (let [{:keys [vel angle thrust]} ship
+        [x y] [(+ (vel 0) (* thrust (cos angle))) (+ (vel 1) (* thrust (sin angle)))]
         x (min x max-forward)
         x (max x max-reverse)
         y (min y max-forward)
