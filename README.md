@@ -7,6 +7,7 @@ Current status:
 
 * Several asteroids are created and move around the playing field
 * A ship is created and can be controlled
+* The ship can fire shots
 * There is no hit detection yet
 
 ## Installation
@@ -27,6 +28,8 @@ Move the ship using:
 * L - rotate right
 * I - forward thrust
 * K - reverse thrust
+
+Use 'F' to fire.
 
 ## License
 
