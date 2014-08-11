@@ -1,16 +1,9 @@
 (ns clojuroids.util)
 
-(def canvas (. js/document (getElementById "roids")))
-(. canvas focus)
-
-(def ctx (. canvas (getContext "2d")))
 (def width 1024)
 (def height 768)
 (def degree-max 512)
 (def degree-mask 511)
-
-(defn clear-canvas []
-  (aset canvas "width" (aget canvas "width")))
 
 (def cosm (memoize (fn [deg] (-> deg (* 6.2831855) (/ degree-max) (Math/cos)))))
 
