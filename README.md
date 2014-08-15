@@ -8,7 +8,8 @@ Current status:
 * Several asteroids are created and move around the playing field
 * A ship is created and can be controlled
 * The ship can fire shots
-* There is no hit detection yet
+* Hit detection
+  * only between shots and roids 
 
 ## Installation
 
