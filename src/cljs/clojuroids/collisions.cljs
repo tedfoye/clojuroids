@@ -1,5 +1,6 @@
 (ns clojuroids.collisions
   (:require
+   [clojure.set :as set]
    [clojuroids.shot :as shot]
    [clojuroids.roid :as roid]
    [clojuroids.render :as render]
@@ -14,22 +15,27 @@
     [left right top bottom]))
 
 (defn in-rect [x y rect]
-  (and (< (get rect 0) x)
-       (> (get rect 1) x)
-       (< (get rect 2) y)
-       (> (get rect 3) y)))
+  (and (< (rect 0) x)
+       (> (rect 1) x)
+       (< (rect 2) y)
+       (> (rect 3) y)))
 
-(defn collision? [obj1 obj2]
-  (let [x (:posx obj1)
-        y (- height (:posy obj1))
-        rect (make-rect obj2)]
-    (in-rect x y rect)))
+(defn collision? [shot roid]
+  (let [x (:posx shot)
+        y (- height (:posy shot))
+        rect (make-rect roid)]
+    (when (in-rect x y rect)
+      shot)))
 
 (defn winnow [pred coll]
   (let [pvs (map #(vector (pred %) %) coll)]
-    [(for [[p v] pvs :when p] v)
+    [(for [[p v] pvs :when p] [p v])
      (for [[p v] pvs :when (not p)] v)]))
 
 (defn shot-roid [shots roids]
-  (let [[hit-roids roids] (winnow (fn [roid] (some (fn [shot] (collision? shot roid)) shots)) roids)]
+  (let [[hits roids] (winnow (fn [roid] (some (fn [shot] (collision? shot roid)) shots)) roids)
+        [shots-hit hit-roids] [(for [obj hits] (first obj)) (for [obj hits] (second obj))]
+        shots (filter #(not= (first shots-hit) %) shots)
+        roids (if-let [hit-roid (first hit-roids)] (concat roids (roid/break-roid hit-roid)) roids)]
     [shots roids]))
+

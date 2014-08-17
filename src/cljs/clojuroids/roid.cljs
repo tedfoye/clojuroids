@@ -6,6 +6,7 @@
   {:points (for [i (range sides)]
               [(-> i (* degree-max) (/ sides) (+ (rand-int 30)))
                (+ size (rand-int (int (/ size 2))))])
+   :size size
    :posx posx
    :posy posy
    :vel [(* velocity (cos direction)) (* velocity (sin direction))] 
@@ -28,20 +29,20 @@
         r2 (range min (inc max))]
     (rand-nth (into r1 r2))))
 
-(defn create-roids []
-  [(create 9 50 (rand-int width) (rand-int height) (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2))
-   (create 9 50 (rand-int width) (rand-int height) (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2))
-   (create 9 50 (rand-int width) (rand-int height) (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2))
-   (create 9 50 (rand-int width) (rand-int height) (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2))
-   
-   (create 7 20 (rand-int width) (rand-int height) (+ 3 (rand-int 3)) (rand-int 512) (rotation 3 4))
-   (create 7 20 (rand-int width) (rand-int height) (+ 3 (rand-int 3)) (rand-int 512) (rotation 3 4))
-   (create 7 20 (rand-int width) (rand-int height) (+ 3 (rand-int 3)) (rand-int 512) (rotation 3 4))
-   (create 7 20 (rand-int width) (rand-int height) (+ 3 (rand-int 3)) (rand-int 512) (rotation 3 4))
- 
-   (create 5 6 (rand-int width) (rand-int height) (+ 5 (rand-int 3)) (rand-int 512) (rotation 11 15))
-   (create 5 6 (rand-int width) (rand-int height) (+ 5 (rand-int 3)) (rand-int 512) (rotation 11 15))
-   (create 5 6 (rand-int width) (rand-int height) (+ 5 (rand-int 3)) (rand-int 512) (rotation 11 15))
-   (create 5 6 (rand-int width) (rand-int height) (+ 5 (rand-int 3)) (rand-int 512) (rotation 11 15))])
+(defn break-roid [roid]
+  (let [{:keys [size posx posy]} roid]
+    (condp = size
+      50 (into []
+               (repeatedly
+                (inc (rand-int 3))
+                #(create 7 20 posx posy (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2))))
+      
+      20 (into []
+               (repeatedly
+                (rand-int 3)
+                #(create 5 6 posx posy (+ 5 (rand-int 3)) (rand-int 512) (rotation 11 15))))
+      [])))
 
+(defn create-roids []
+  (into [] (repeatedly 4 #(create 9 50 (rand-int width) (rand-int height) (+ 1 (rand-int 3)) (rand-int 512) (rotation 1 2)))))
      
