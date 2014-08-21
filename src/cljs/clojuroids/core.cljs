@@ -14,7 +14,7 @@
 
 (defn game [roids ship]
   (let [input-chan (input/user-input)]
-    (go-loop [roids roids ship ship shots shots flames [] explosions [] st (.getTime (js/Date.))]
+    (go-loop [roids roids ship ship shots [] flames [] explosions [] st (.getTime (js/Date.))]
       (render/animate-frame (concat roids shots [ship] flames explosions))
       (let [input (alt! [input-chan] ([v] v) :default [])
             [ship explosions] (ship/handle-input ship input explosions)
@@ -24,7 +24,7 @@
             roids (roid/update roids)
             flames (flames/update flames)
             explosions (explode/update explosions)
-            [shots roids flames] (collision/shot-roid shots roids flames)
+            [shots roids flames explosions] (collision/shot-roid shots roids flames explosions)
             et (.getTime (js/Date.))
             td (- et st)]
         (<! (timeout (- 33 td)))

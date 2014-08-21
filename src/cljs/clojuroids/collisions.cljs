@@ -34,12 +34,12 @@
     [(for [[p v] pvs :when p] [p v])
      (for [[p v] pvs :when (not p)] v)]))
 
-(defn shot-roid [shots roids flames]
+(defn shot-roid [shots roids flames explosions]
   (let [[hits roids] (winnow (fn [roid] (some (fn [shot] (collision? shot roid)) shots)) roids)
         [shots-hit hit-roids] [(for [obj hits] (first obj)) (for [obj hits] (second obj))]
         shots (filter #(not= (first shots-hit) %) shots)
         roids (if-let [hit-roid (first hit-roids)] (concat roids (roid/break-roid hit-roid)) roids)
-        flames (if (first hit-roids) (explode/create-explosion (first hit-roids) flames) flames) 
+        explosions (if-let [roid (first hit-roids)] (explode/create-explosion roid explosions) explosions)
         flames (if (first shots-hit) (flames/create-flames (first shots-hit) flames) flames)]
-    [shots roids flames]))
+    [shots roids flames explosions]))
 

@@ -11,7 +11,7 @@
                  [javax.servlet/javax.servlet-api "3.1.0"]]
   :plugins [[lein-ring "0.8.11"]
             [lein-cljsbuild "1.0.3"]
-            [cider/cider-nrepl "0.7.0-SNAPSHOT"]]
+            [cider/cider-nrepl "0.7.0"]]
   :ring {:handler clojuroids.handler/app}
   :source-paths ["src/clj"]
   :target-path "target/%s"

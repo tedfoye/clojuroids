@@ -25,5 +25,5 @@
      (requestAnimationFrame
       (fn [t]
         (aset canvas "width" (aget canvas "width"))
-        (dorun (map draw objects))))))
+        (doseq [object objects] (draw object))))))
 
