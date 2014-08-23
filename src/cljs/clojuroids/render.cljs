@@ -7,14 +7,9 @@
 
 (def ctx (. canvas (getContext "2d")))
 
-(defn draw-points [roid]
-  (let [{:keys [points angle posx posy]} roid]
-    (for [[theta len] points]
-      [(+ posx (* len (cos theta angle)))
-       (- height (+ posy (* len (sin theta angle))))])))
-
 (defn draw [object]
-  (let [points (draw-points object) [x y] (first points)
+  (let [points (:points object)                       
+        [x y] (first points)
         color (or (:color object) "#ffffff")]
     (doto ctx (.beginPath) (.moveTo x y))
     (dorun (map (fn [[x y]] (. ctx (lineTo x y))) (rest points)))
