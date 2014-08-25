@@ -1,34 +1,39 @@
 (ns clojuroids.shot
-  (:require [clojuroids.util :refer [cos sin width height]]))
+  (:require [clojuroids.util :as u]))
+
+(def max-shots 2)
+(def f-key 70)
+(def shot-velocity 20)
+(def offset-to-tip-of-ship 12)
+(def time-to-live 30)
+(def ttl-change 20)
+(def color-1 "#ADD8E6")
+(def color-2 "#4682B4")
 
 (defn create [ship]
-  (let [{:keys [posx posy angle]} ship vel 20]
-    {:points [[0 2] [128 2] [256 2] [384 2]]
-     :posx (+ posx (* 12 (cos angle)))
-     :posy (+ posy (* 12 (sin angle)))
-     :vel [(* vel (cos angle)) (* vel (sin angle))]
-     :angle angle
-     :rot 0
-     :ttl 40
-     :color "#ADD8E6"}))
-
-(defn translate [shot]
-  (let [{:keys [posx posy] [velx vely] :vel} shot
-        x (- (mod (+ posx 50 velx) (+ width 100)) 50) 
-        y (- (mod (+ posy 50 vely) (+ height 100)) 50)]
-    (assoc shot :posx x :posy y)))
+  (let [{:keys [x y angle]} ship
+        model [[0 2] [128 2] [256 2] [384 2]]
+        shot {:model model
+              :rect (u/rect model)
+              :x (+ x (* offset-to-tip-of-ship (u/cos angle)))
+              :y (+ y (* offset-to-tip-of-ship (u/sin angle)))
+              :vel [(* shot-velocity (u/cos angle)) (* shot-velocity (u/sin angle))]
+              :angle angle
+              :rot 0
+              :ttl time-to-live}]
+    [(u/model-to-points shot)]))
 
 (def xform (comp (map #(assoc % :ttl (dec (:ttl %))))
-                 (map #(assoc % :color (if (< (:ttl %) 20) "#4682B4" "#ADD8E6" )))
+                 (map #(assoc % :color (if (> (:ttl %) ttl-change) color-1 color-2 )))
                  (filter #(> (:ttl %) 0))
-                 (map translate)))
+                 (map u/translate)
+                 (map u/model-to-points)))
 
-(defn update [shots]
-  (sequence xform shots))
+(defn update [shots] (sequence xform shots))
 
 (defn handle-input [shots ship input]
-  (if (and (= input [70 :key-down]) (< (count shots) 2))
-    (concat shots [(create ship)])
+  (if (and (= input [f-key :key-down]) (< (count shots) max-shots))
+    (concat shots (create (first ship)))
     shots))
 
 

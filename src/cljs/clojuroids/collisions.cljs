@@ -5,41 +5,44 @@
    [clojuroids.roid :as roid]
    [clojuroids.flames :as flames]
    [clojuroids.explode :as explode]
-   [clojuroids.render :as render]
-   [clojuroids.util :refer [height]]))
+   [clojuroids.render :as render]))
 
-(defn make-rect [object]
-  (let [points (render/draw-points object)
-        left (get (apply min-key first points) 0)
-        right (get (apply max-key first points) 0)
-        top (get (apply min-key second points) 1)
-        bottom (get (apply max-key second points) 1)]
-    [left right top bottom]))
+(defn collision [shot roid]
+  (if (seq shot)
+    (let [{:keys [x y] [w h hw hh] :rect} roid
+          [l r] [(- x hw) (+ x hw)]
+          [t b] [(- y hh) (+ y hh)]
+          [x1 y1] [(:x shot) (:y shot)]]
+      (if (and (> x1 l) (< x1 r) (> y1 t) (< y1 b))
+        [shot roid]))))
 
-(defn in-rect [x y rect]
-  (and (< (rect 0) x)
-       (> (rect 1) x)
-       (< (rect 2) y)
-       (> (rect 3) y)))
-
-(defn collision? [shot roid]
-  (let [x (:posx shot)
-        y (- height (:posy shot))
-        rect (make-rect roid)]
-    (when (in-rect x y rect)
-      shot)))
-
-(defn winnow [pred coll]
-  (let [pvs (map #(vector (pred %) %) coll)]
-    [(for [[p v] pvs :when p] [p v])
-     (for [[p v] pvs :when (not p)] v)]))
+(defn detect-collisions [shots roids]
+  (loop [shots shots shots-non-hit [] roids-hit []]
+    (if (seq shots)
+      (let [[shot roid] (some #(collision (first shots) %) roids)
+            shots-non-hit (if (seq shot)
+                            shots-non-hit
+                            (conj shots-non-hit (first shots)))
+            roids-hit (if (seq roid)
+                        (conj roids-hit roid)
+                        roids-hit)]
+        (recur (rest shots) shots-non-hit roids-hit))
+      [shots-non-hit roids-hit])))
 
 (defn shot-roid [shots roids flames explosions]
-  (let [[hits roids] (winnow (fn [roid] (some (fn [shot] (collision? shot roid)) shots)) roids)
-        [shots-hit hit-roids] [(for [obj hits] (first obj)) (for [obj hits] (second obj))]
-        shots (filter #(not= (first shots-hit) %) shots)
-        roids (if-let [hit-roid (first hit-roids)] (concat roids (roid/break-roid hit-roid)) roids)
-        explosions (if-let [roid (first hit-roids)] (explode/create-explosion roid explosions) explosions)
-        flames (if (first shots-hit) (flames/create-flames (first shots-hit) flames) flames)]
+  (let [[shots roids-hit] (detect-collisions shots roids)
+        flames (if (seq roids-hit)
+                 (flames/create-flames roids-hit flames)
+                 flames)
+        roids (if (seq roids-hit)
+                (remove #(= (first roids-hit) %) roids)
+                roids)
+        roids (if (seq roids-hit)
+                (concat roids (roid/break-roid (first roids-hit)))
+                roids)
+        explosions (if (seq roids-hit)
+                     (explode/create-explosion (first roids-hit) explosions)
+                     explosions)]
     [shots roids flames explosions]))
+
 

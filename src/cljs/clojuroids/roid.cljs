@@ -33,14 +33,20 @@
 (defn update [roids] (sequence update-xform roids))
 
 (defn break-roid [roid]
-  (let [{:keys [size posx posy]} roid]
+  (let [{:keys [size x y]} roid]
     (condp = size
-      size-lg (take (inc (rand-int 3)) (roid-seq (fn [] posx) (fn [] posy) md-roid))
-      size-md (take (rand-int 3) (roid-seq  (fn [] posx) (fn [] posy) sm-roid))
+      size-lg (take (inc (rand-int 3)) (roid-seq (fn [] x)
+                                                 (fn [] y)
+                                                 md-roid))
+      size-md (take (rand-int 3) (roid-seq  (fn [] x)
+                                            (fn [] y)
+                                            sm-roid))
       [])))
 
-(def create-xform (comp (take 4) (map u/model-to-points)))
+(defn create-xform [n] (comp (take n) (map u/model-to-points)))
 
-(defn create-roids []
-  (sequence create-xform (roid-seq #(rand-int u/width) #(rand-int u/height) lg-roid)))
+(defn create-roids [n]
+  (sequence (create-xform n) (roid-seq #(rand-int u/width)
+                                       #(rand-int u/height)
+                                       lg-roid)))
 

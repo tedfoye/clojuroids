@@ -1,53 +1,54 @@
 (ns clojuroids.ship
   (:require
-   [clojuroids.util :refer [degree-mask width height cos sin]]
+   [clojuroids.util :as u]
    [clojuroids.flames :as flames]
    [clojuroids.explode :as explode]))
 
 (def max-forward 10)
 (def max-reverse -10)
 
-
 (defn create []
-  {:type :ship
-   :points [[0 12] [192 12] [256 3] [320 12] [0 12]]
-   :posx (/ width 2) 
-   :posy (/ height 2)
-   :vel [0 0]
-   :angle 128 
-   :rot 0
-   :thrust 0
-   })
+  (let [model [[0 12] [192 12] [256 3] [320 12] [0 12]]
+        ship {:model model 
+              :rect (u/rect model)
+              :x (/ u/width 2) 
+              :y (/ u/height 2)
+              :vel [0 0]
+              :angle 128 
+              :rot 0
+              :thrust 0}]
+   [(u/model-to-points ship)]))
 
 (defn update-velocity [ship]
   (let [{:keys [vel angle thrust]} ship
-        x (+ (vel 0) (* thrust (cos angle))) 
-        y (+ (vel 1) (* thrust (sin angle)))
+        x (+ (vel 0) (* thrust (u/cos angle))) 
+        y (+ (vel 1) (* thrust (u/sin angle)))
         x (min x max-forward)
         x (max x max-reverse)
         y (min y max-forward)
         y (max y max-reverse)] 
     (assoc ship :vel [x y])))
 
-(defn update [ship flames]
-  (let [ship (update-velocity ship)
-        {:keys [posx posy angle rot thrust] [velx vely] :vel} ship
-        x (- (mod (+ posx 50 velx) (+ width 100)) 50) 
-        y (- (mod (+ posy 50 vely) (+ height 100)) 50)
-        rot (mod (+  angle rot) degree-mask)]
-    [(assoc ship :posx x :posy y :angle rot)
-     (if (not= 0 thrust) (flames/create-ship-flames ship flames) flames)]))
+(def update-xform (comp (map update-velocity)
+                        (map u/translate)
+                        (map u/model-to-points)))
 
-(defn handle-input [ship input explosions]
+(defn update [ship] (sequence update-xform ship))
+
+(defn flames [ship flames]
+  (if (not= 0 (:thrust (first ship)))
+    (flames/create-ship-flames (first ship) flames)
+    flames))
+
+(defn handle-input [ship input]
   (condp = input 
-    [74 :key-down] [(assoc ship :rot 10) explosions]
-    [74 :key-up]   [(assoc ship :rot 0) explosions]
-    [76 :key-down] [(assoc ship :rot -10) explosions]
-    [76 :key-up]   [(assoc ship :rot 0) explosions]
-    [73 :key-down] [(assoc ship :thrust 0.5) explosions] 
-    [73 :key-up]   [(assoc ship :thrust 0) explosions] 
-    [75 :key-down] [(assoc ship :thrust -0.5) explosions] 
-    [75 :key-up]   [(assoc ship :thrust 0) explosions] 
-    [77 :key-down] [ship (explode/create-explosion ship explosions)]
-    [ship explosions]))
+    [74 :key-down] (sequence (map #(assoc % :rot 10)) ship) 
+    [74 :key-up]   (sequence (map #(assoc % :rot 0)) ship)
+    [76 :key-down] (sequence (map #(assoc % :rot -10)) ship)
+    [76 :key-up]   (sequence (map #(assoc % :rot 0)) ship)
+    [73 :key-down] (sequence (map #(assoc % :thrust 0.5)) ship) 
+    [73 :key-up]   (sequence (map #(assoc % :thrust 0)) ship)
+    [75 :key-down] (sequence (map #(assoc % :thrust -0.5)) ship)
+    [75 :key-up]   (sequence (map #(assoc % :thrust 0)) ship)
+    ship))
 

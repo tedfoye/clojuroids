@@ -26,12 +26,12 @@
         [w h] [(* (- r l) 1.1) (* (- b t) 1.1)]]
     [w h (/ w 2) (/ h 2)]))
 
-(defn model-to-points [roid]
-  (let [{:keys [model angle x y]} roid
+(defn model-to-points [obj]
+  (let [{:keys [model angle x y]} obj
         pts (for [[theta len] model]
               [(+ x (* len (cos theta angle)))
                (- height (+ y (* len (sin theta angle))))])]
-   (assoc roid :points pts)))
+   (assoc obj :points pts)))
 
 (defn translate [obj]
   (let [{:keys [x y angle rot] [vx vy] :vel [w h hw hh] :rect} obj
@@ -43,7 +43,6 @@
 (defn velocity [v a]
   [(* (inc (rand-int v)) (cos a))
    (* (inc (rand-int v)) (sin a))])
-
 
 (def plus-or-minus [(partial -) (partial +)])
 (defn roid-rnd [r] ((rand-nth plus-or-minus) (inc (rand-int r))))
