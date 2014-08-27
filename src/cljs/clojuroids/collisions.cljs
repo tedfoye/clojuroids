@@ -1,11 +1,9 @@
 (ns clojuroids.collisions
   (:require
-   [clojure.set :as set]
    [clojuroids.shot :as shot]
    [clojuroids.roid :as roid]
    [clojuroids.flames :as flames]
-   [clojuroids.explode :as explode]
-   [clojuroids.render :as render]))
+   [clojuroids.explode :as explode]))
 
 (defn collision [shot roid]
   (if (seq shot)
@@ -16,33 +14,15 @@
       (if (and (> x1 l) (< x1 r) (> y1 t) (< y1 b))
         [shot roid]))))
 
-(defn detect-collisions [shots roids]
-  (loop [shots shots shots-non-hit [] roids-hit []]
-    (if (seq shots)
-      (let [[shot roid] (some #(collision (first shots) %) roids)
-            shots-non-hit (if (seq shot)
-                            shots-non-hit
-                            (conj shots-non-hit (first shots)))
-            roids-hit (if (seq roid)
-                        (conj roids-hit roid)
-                        roids-hit)]
-        (recur (rest shots) shots-non-hit roids-hit))
-      [shots-non-hit roids-hit])))
+(defn collisions [shots roids]
+  (some #(collision (first shots) %) roids))
 
 (defn shot-roid [shots roids flames explosions]
-  (let [[shots roids-hit] (detect-collisions shots roids)
-        flames (if (seq roids-hit)
-                 (flames/create-flames roids-hit flames)
-                 flames)
-        roids (if (seq roids-hit)
-                (remove #(= (first roids-hit) %) roids)
-                roids)
-        roids (if (seq roids-hit)
-                (concat roids (roid/break-roid (first roids-hit)))
-                roids)
-        explosions (if (seq roids-hit)
-                     (explode/create-explosion (first roids-hit) explosions)
-                     explosions)]
+  (let [[shot roid] (collisions shots roids)
+        shots (sequence (remove #(= % shot)) shots)
+        flames (concat flames (flames/create-flames roid)) 
+        roids (sequence (remove #(= % roid)) roids)
+        roids (concat roids (roid/break-roid roid))
+        explosions (concat explosions (explode/create-explosion roid))] 
     [shots roids flames explosions]))
-
 

@@ -22,7 +22,7 @@
             shots (shot/handle-input shots ship input)
             shots (shot/update shots)
             roids (roid/update roids)
-            flames (ship/flames ship flames)
+            flames (concat flames (ship/flames ship))
             flames (flames/update flames)
             explosions (explode/update explosions)
             [shots roids flames explosions] (collision/shot-roid shots roids flames explosions)
@@ -33,6 +33,8 @@
 
 
 ; create some asteroids, the ship, and enter the game loop
-(game (roid/create-roids 4)
-      (ship/create))
+(game (roid/create-roids 4) (ship/create))
+
+
+
  

@@ -35,10 +35,9 @@
 
 (defn update [ship] (sequence update-xform ship))
 
-(defn flames [ship flames]
+(defn flames [ship]
   (if (not= 0 (:thrust (first ship)))
-    (flames/create-ship-flames (first ship) flames)
-    flames))
+    (flames/create-ship-flames (first ship))))
 
 (defn handle-input [ship input]
   (condp = input 
