@@ -1,8 +1,10 @@
 (ns clojuroids.explode
   (:require [clojuroids.util :as u]))
 
+(def default-ttl 5)
+
 (defn create [obj model ttl]
-  (let [{:keys [angle x y rot vel] [vx vy] :vel} obj
+  (let [{:keys [angle x y rot vel]} obj
         expl {:model model 
               :x x
               :y y 
@@ -20,9 +22,11 @@
 
 (defn update [explosions] (sequence xform explosions))
 
-(defn create-explosion [obj]
-  (let [model (:model obj)
-        pts (partition 2 1 (concat model [(first model)]))]
-    (sequence (map #(create obj %1 5)) pts)))
+(defn create-explosion
+  ([obj] (create-explosion obj default-ttl))
+  ([obj ttl]
+        (let [model (:model obj)
+              pts (partition 2 1 (concat model [(first model)]))]
+          (sequence (map #(create obj %1 ttl)) pts))))
 
 

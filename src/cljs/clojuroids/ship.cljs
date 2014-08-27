@@ -6,18 +6,18 @@
 
 (def max-forward 10)
 (def max-reverse -10)
+(def model [[0 12] [192 12] [256 3] [320 12] [0 12]])
 
 (defn create []
-  (let [model [[0 12] [192 12] [256 3] [320 12] [0 12]]
-        ship {:model model 
-              :rect (u/rect model)
-              :x (/ u/width 2) 
-              :y (/ u/height 2)
-              :vel [0 0]
-              :angle 128 
-              :rot 0
-              :thrust 0}]
-   [(u/model-to-points ship)]))
+  (let [ship {:model model 
+             :rect (u/rect model)
+             :x (/ u/width 2) 
+             :y (/ u/height 2)
+             :vel [0 0]
+             :angle 128 
+             :rot 0
+             :thrust 0}]
+   [ship]))
 
 (defn update-velocity [ship]
   (let [{:keys [vel angle thrust]} ship
@@ -37,17 +37,16 @@
 
 (defn flames [ship]
   (if (not= 0 (:thrust (first ship)))
-    (flames/create-ship-flames (first ship))))
+    (flames/create-ship-flames ship)))
 
-(defn handle-input [ship input]
+(defn control [input]
   (condp = input 
-    [74 :key-down] (sequence (map #(assoc % :rot 10)) ship) 
-    [74 :key-up]   (sequence (map #(assoc % :rot 0)) ship)
-    [76 :key-down] (sequence (map #(assoc % :rot -10)) ship)
-    [76 :key-up]   (sequence (map #(assoc % :rot 0)) ship)
-    [73 :key-down] (sequence (map #(assoc % :thrust 0.5)) ship) 
-    [73 :key-up]   (sequence (map #(assoc % :thrust 0)) ship)
-    [75 :key-down] (sequence (map #(assoc % :thrust -0.5)) ship)
-    [75 :key-up]   (sequence (map #(assoc % :thrust 0)) ship)
-    ship))
-
+    [74 :key-down] (fn [i](assoc i :rot 10)) 
+    [74 :key-up]   (fn [i](assoc i :rot 0)) 
+    [76 :key-down] (fn [i](assoc i :rot -10)) 
+    [76 :key-up]   (fn [i](assoc i :rot 0)) 
+    [73 :key-down] (fn [i](assoc i :thrust 0.5)) 
+    [73 :key-up]   (fn [i](assoc i :thrust 0)) 
+    [75 :key-down] (fn [i](assoc i :thrust -0.5))
+    [75 :key-up]   (fn [i](assoc i :thrust 0))
+    (fn [i] i)))
