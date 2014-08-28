@@ -9,6 +9,7 @@
 (def default-ttl 10)
 (def ship-ttl 2)
 (def opposite-dir (/ u/degree-max 2))
+(def model [[0 1] [128 1] [256 1] [384 1]])
 
 (defn angle-fn [] (rand-int u/degree-max))
 
@@ -21,7 +22,6 @@
 (defn create [obj angle-fn ttl]
   (lazy-seq
    (let [{:keys [x y]} obj
-         model [[0 1] [128 1] [256 1] [384 1]]
          flame {:model model 
                 :rect (u/rect model)
                 :x x
@@ -33,14 +33,6 @@
                 :ttl (+ ttl (rand-int 5))}]
      (cons flame (create obj angle-fn ttl)))))
 
-(defn take-inject [n f]
-  (fn [f1]
-    (fn
-      ([] (f1))
-      ([result] (f1 result))
-      ([result input]
-         (f1 result (take n (f input)))))))
-
 (def xform (comp (map #(assoc % :ttl (dec (:ttl %))))
                  (map #(assoc % :color (if (< (:ttl %) 3) color-2 color-1)))
                  (filter #(> (:ttl %) 0))
@@ -49,16 +41,9 @@
 
 (defn update [flames] (sequence xform flames))
 
-(def flames-xform (comp (take flame-count)
-                        (map #(create % angle-fn default-ttl))))
-
 (defn create-flames [obj]
-  (sequence (take-inject flame-count #(create % angle-fn default-ttl)) obj))
-
-(def ship-flames-xform (comp (take ship-flame-count)
-                             (map #(create % ship-angle-fn ship-ttl))))
-
-(def ship-flame-fn (fn [obj] (create obj ship-angle-fn ship-ttl)))
+  (if (seq obj)
+    (take flame-count (create obj angle-fn default-ttl))))
 
 (defn create-ship-flames [ship]
-  (sequence (take-inject ship-flame-count ship-flame-fn) ship))
+  (take ship-flame-count (create ship (ship-angle-fn ship) ship-ttl)))

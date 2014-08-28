@@ -1,11 +1,11 @@
 (ns clojuroids.shot
   (:require [clojuroids.util :as u]))
 
-(def max-shots 2)
+(def max-shots 5)
 (def f-key 70)
-(def shot-velocity 20)
+(def shot-velocity 10)
 (def offset-to-tip-of-ship 12)
-(def time-to-live 30)
+(def time-to-live 50)
 (def ttl-change 20)
 (def color-1 "#ADD8E6")
 (def color-2 "#4682B4")
