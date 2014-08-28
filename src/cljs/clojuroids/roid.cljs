@@ -34,11 +34,11 @@
 (defn update [roids] (sequence update-xform roids))
 
 (defn break-lg [x y]
-  (let [n (inc (rand-int 3))]
+  (let [n (inc (rand-int 4))]
     (take n (roid-seq (fn [] x) (fn [] y) md-roid))))
 
 (defn break-md [x y]
-  (let [n (rand-int 10)]
+  (let [n (rand-int 4)]
     (take n (roid-seq (fn [] x) (fn [] y) sm-roid))))
 
 (defn break-roid [roid]
@@ -46,7 +46,7 @@
     (let [{:keys [size x y]} roid]
       (condp = size
         size-lg (break-lg x y) 
-        ;size-md (break-md x y) 
+        size-md (break-md x y) 
         []))))
 
 (defn create-roids [n]

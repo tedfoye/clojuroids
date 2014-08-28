@@ -1,10 +1,7 @@
-(ns clojuroids.render
-  (:require
-   [clojuroids.util :refer [width height cos sin]]))
+(ns clojuroids.render)
 
 (def canvas (. js/document (getElementById "roids")))
 (. canvas focus)
-
 (def ctx (. canvas (getContext "2d")))
 
 (defn draw [object]
@@ -12,7 +9,7 @@
         [x y] (first points)
         color (or (:color object) "#ffffff")]
     (doto ctx (.beginPath) (.moveTo x y))
-    (dorun (map (fn [[x y]] (. ctx (lineTo x y))) (rest points)))
+    (doseq [[x y] (rest points)] (. ctx (lineTo x y)))
     (doto ctx (.closePath) (aset "strokeStyle" color) (.stroke))))
 
 (defn animate-frame [objects]

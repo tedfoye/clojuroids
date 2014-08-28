@@ -32,4 +32,4 @@
         (recur roids ship shots flames explosions (.getTime (js/Date.)))))))
 
 ; create some asteroids, the ship, and enter the game loop
-(game (roid/create-roids 10) (ship/create))
+(game (roid/create-roids 4) (ship/create))
