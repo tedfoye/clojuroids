@@ -3,13 +3,37 @@ Clojuroids
 
 A [ClojureScript](http://github.com/clojure/clojurescript) version of the classic [Asteroids] (http://en.wikipedia.org/wiki/Asteroids_(video_game)) video game.
 
-Current status:
+## Current status
 
 * Several asteroids are created and move around the playing field
 * A ship is created and can be controlled
 * The ship can fire shots
 * Hit detection
-  * only between shots and roids 
+  * between shots and roids
+  * between ship and roids
+* Only 1 ship. 
+* Added effects
+  * flames
+  * explosions
+* Requires HTML 5
+* Works best with Chrome
+
+Been spending time on getting the core of the game to the point where I can start adding functionality without breaking anything. I think I am there.
+
+## Todo
+* Enemy ships
+* Scoring
+* Spawn new ship when the player dies
+* Spawn new roids and increase the level when the field is cleared
+* Bonuses
+* Shields
+* Sound 
+
+## Libraries/APIs Used
+* ClojureScript
+* core.async
+* Transducers
+* compojure
 
 ## Installation
 
