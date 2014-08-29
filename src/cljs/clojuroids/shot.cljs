@@ -6,7 +6,7 @@
 (def shot-velocity 20)
 (def offset-to-tip-of-ship 12)
 (def time-to-live 40)
-(def ttl-change 20)
+(def color-change-ttl 20)
 (def color-1 "#ADD8E6")
 (def color-2 "#4682B4")
 
@@ -23,16 +23,31 @@
               :ttl time-to-live}]
     [(u/model-to-points shot)]))
 
-(def xform (comp (map #(assoc % :ttl (dec (:ttl %))))
-                 (map #(assoc % :color (if (> (:ttl %) ttl-change) color-1 color-2 )))
-                 (filter #(> (:ttl %) 0))
+(defn color [{ttl :ttl :as obj}]
+  (let [c (if (< ttl color-change-ttl)
+            color-2
+            color-1)]
+    (assoc obj :color c)))
+
+(defn dec-ttl [{ttl :ttl :as obj}]
+  (assoc obj :ttl (dec ttl)))
+
+(defn alive? [{ttl :ttl}]
+  (> ttl 0))
+
+
+(def xform (comp (map dec-ttl)
+                 (map color)
+                 (filter alive?)
                  (map u/translate)
                  (map u/model-to-points)))
 
 (defn update [shots] (sequence xform shots))
 
 (defn handle-input [shots ship input]
-  (if (and (= input [f-key :key-down]) (< (count shots) max-shots))
+  (if (and
+       (= input [f-key :key-down])
+       (< (count shots) max-shots))
     (concat shots (create (first ship)))
     shots))
 

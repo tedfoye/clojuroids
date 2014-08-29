@@ -12,9 +12,12 @@
   (:require-macros
    [cljs.core.async.macros :refer [alt! go-loop]]))
 
+(defn timestamp []
+  (.getTime (js/Date.)))
+
 (defn game [roids ship]
   (let [input-chan (input/user-input)]
-    (go-loop [roids roids ship ship shots [] flames [] explosions [] st (.getTime (js/Date.))]
+    (go-loop [roids roids ship ship shots [] flames [] explosions [] st (timestamp)]
       (render/animate-frame (concat roids shots ship flames explosions))
       (let [input (alt! [input-chan] ([v] v) :default [])
             ship (sequence (map (ship/control input)) ship)
@@ -26,10 +29,10 @@
             flames (flames/update flames)
             explosions (explode/update explosions)
             [ship shots roids flames explosions] (collision/shot-roid ship shots roids flames explosions)
-            et (.getTime (js/Date.))
+            et (timestamp) 
             td (- et st)]
         (<! (timeout (- 33 td)))
-        (recur roids ship shots flames explosions (.getTime (js/Date.)))))))
+        (recur roids ship shots flames explosions (timestamp))))))
 
 ; create some asteroids, the ship, and enter the game loop
 (game (roid/create-roids 4) (ship/create))

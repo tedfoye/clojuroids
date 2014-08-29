@@ -8,8 +8,12 @@
 (def flame-spread 50)
 (def default-ttl 10)
 (def ship-ttl 2)
+(def ttl-rnd 5)
+(def color-change-ttl 3)
 (def opposite-dir (/ u/degree-max 2))
 (def model [[0 1] [128 1] [256 1] [384 1]])
+(def velocity 5)
+(def velocity-rnd 2)
 
 (defn angle-fn [] (rand-int u/degree-max))
 
@@ -19,6 +23,14 @@
        opposite-dir
        (u/roid-rnd flame-spread))))
 
+(defn velocity-2d [angle-fn]
+  (let [angle (mod (angle-fn) u/degree-mask)
+        x (+ velocity (u/roid-rnd velocity-rnd))
+        y (+ velocity (u/roid-rnd velocity-rnd))
+        vx (* x (u/cos (angle-fn)))
+        vy (* y (u/sin (angle-fn)))]
+    [vx vy]))
+
 (defn create [obj angle-fn ttl]
   (lazy-seq
    (let [{:keys [x y]} obj
@@ -26,16 +38,26 @@
                 :rect (u/rect model)
                 :x x
                 :y y 
-                :vel [(* (+ 5 (u/roid-rnd 2)) (u/cos (angle-fn)))
-                      (* (+ 5 (u/roid-rnd 2)) (u/sin (angle-fn)))] 
+                :vel (velocity-2d angle-fn) 
                 :angle (mod (angle-fn) u/degree-mask)
                 :rot 0
-                :ttl (+ ttl (rand-int 5))}]
+                :ttl (+ ttl (rand-int ttl-rnd))}]
      (cons flame (create obj angle-fn ttl)))))
 
-(def xform (comp (map #(assoc % :ttl (dec (:ttl %))))
-                 (map #(assoc % :color (if (< (:ttl %) 3) color-2 color-1)))
-                 (filter #(> (:ttl %) 0))
+
+(defn dec-ttl [{ttl :ttl :as obj}]
+  (assoc obj :ttl (dec ttl)))
+
+(defn color [{ttl :ttl :as obj}]
+  (let [c (if (< ttl color-change-ttl) color-2 color-1)]
+    (assoc obj :color c)))
+
+(defn alive? [{ttl :ttl}]
+  (> ttl 0))
+
+(def xform (comp (map dec-ttl)
+                 (map color)
+                 (filter alive?)
                  (map u/translate)
                  (map u/model-to-points)))
 

@@ -35,11 +35,15 @@
 
 (defn break-lg [x y]
   (let [n (inc (rand-int 4))]
-    (take n (roid-seq (fn [] x) (fn [] y) md-roid))))
+    (take n (roid-seq (fn [] x)
+                      (fn [] y)
+                      md-roid))))
 
 (defn break-md [x y]
   (let [n (rand-int 4)]
-    (take n (roid-seq (fn [] x) (fn [] y) sm-roid))))
+    (take n (roid-seq (fn [] x)
+                      (fn [] y)
+                      sm-roid))))
 
 (defn break-roid [roid]
   (if (seq roid)
@@ -50,4 +54,6 @@
         []))))
 
 (defn create-roids [n]
-  (take n (roid-seq #(rand-int u/width) #(rand-int u/height) lg-roid)))
+  (take n (roid-seq #(rand-int u/width)
+                    #(rand-int u/height)
+                    lg-roid)))

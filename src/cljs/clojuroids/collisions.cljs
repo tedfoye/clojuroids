@@ -5,55 +5,35 @@
    [clojuroids.flames :as flames]
    [clojuroids.explode :as explode]))
 
-(defn collision [obj roid]
+(defn pt-in-rect [obj roid]
   (if (and (seq obj) (seq roid))
     (let [{:keys [x y] [_ _ hw hh] :rect} roid
           [l r] [(- x hw) (+ x hw)]
-          [t b] [(- y hh) (+ y hh)]
+          [t b] [(+ y hh) (- y hh)]
           [x1 y1] [(:x obj) (:y obj)]]
-      (if (not (seq (:rect roid))) 
-        (.log js/console roid))
-      (if (and (< l x1 r) (< t y1 b))
+      (if (and (< l x1 r) (< b y1 t))
         [obj roid]))))
 
 (defn collisions [objs roids]
-  (if (and (seq objs) (seq roids))
-    (sequence (comp (map (fn [obj]
-                           (some (fn [roid]
-                                   (collision obj roid))
-                                 roids)))
-                    (filter #(seq %)))
-              objs)))
-
-(defn collisions2 [objs roids]
-  (if (and (seq objs) (seq roids))
-    (loop [hits [] objs objs]
-      (if (not (seq objs))
-        hits
-        (recur (concat hits
-                       (some #(collision (first objs) %) roids))
-               (rest objs))))))
-
-(defn collisions1 [obj roids]
-  (some #(collision (first obj) %) roids))
+  (loop [hits [] objs objs]
+    (if (not (seq objs))
+      hits
+      (recur (concat hits
+                     (some #(pt-in-rect (first objs) %) roids))
+             (rest objs)))))
 
 (defn shot-roid [ship shots roids flames explosions]
   (let [hits (collisions shots roids)
+        shots-hit (sequence (take-nth 2) hits)
+        roids-hit (sequence (take-nth 2) (rest hits))
+        shots (sequence (remove #(= % (first shots-hit))) shots)
+        flames (concat flames (flames/create-flames (first shots-hit))) 
+        roids (sequence (remove #(= % (first roids-hit))) roids)
+        roids (concat roids (roid/break-roid (first roids-hit)))
+        explosions (concat explosions (explode/create-explosion (first roids-hit)))
 
-        ;shots (sequence (remove ))
-        ;[shot roid] (collisions shots roids)
-        ;shots (sequence (remove #(= % shot)) shots)
-        ;flames (concat flames (flames/create-flames shot)) 
-        ;roids (sequence (remove #(= % roid)) roids)
-        ;roids (concat roids (roid/break-roid roid))
-        ;explosions (concat explosions (explode/create-explosion roid))
-
-                                        ;[ship-hit roid] (collisions ship roids)
-                                        ;explosions (concat explosions (explode/create-explosion ship-hit 20))
-                                        ;ship (if (seq ship-hit) nil ship)
-        ] 
-    (if (seq hits)
-      (doseq [hit hits]
-        (.log js/console (str hit))))
+        ship-collisions (collisions ship roids)
+        ship-hits (sequence (take-nth 2) ship-collisions)
+        explosions (concat explosions (explode/create-explosion (first ship-hits) 20))
+        ship (if (seq ship-hits) nil ship)] 
     [ship shots roids flames explosions]))
-

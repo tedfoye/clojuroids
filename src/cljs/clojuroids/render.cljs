@@ -1,21 +1,39 @@
 (ns clojuroids.render)
 
+(def white "#ffffff")
 (def canvas (. js/document (getElementById "roids")))
-(. canvas focus)
 (def ctx (. canvas (getContext "2d")))
 
-(defn draw [object]
-  (let [points (:points object)                       
-        [x y] (first points)
-        color (or (:color object) "#ffffff")]
-    (doto ctx (.beginPath) (.moveTo x y))
-    (doseq [[x y] (rest points)] (. ctx (lineTo x y)))
-    (doto ctx (.closePath) (aset "strokeStyle" color) (.stroke))))
+(defn move-to [[x y]]
+  (doto ctx
+    (.beginPath)
+    (.moveTo x y)))
+
+(defn line-to-seq [pts]
+  (doseq [[x y] pts]
+    (. ctx (lineTo x y))))
+
+(defn close-path [color]
+  (doto ctx
+    (.closePath)
+    (aset "strokeStyle" color)
+    (.stroke)))
+
+(defn draw [{p :points c :color}]
+  (move-to (first p)) 
+  (line-to-seq (rest p)) 
+  (close-path (or c white)))
+
+(defn clear-canvas []
+  (aset canvas "width" (aget canvas "width")))
 
 (defn animate-frame [objects]
   (. js/window
      (requestAnimationFrame
       (fn [t]
-        (aset canvas "width" (aget canvas "width"))
-        (doseq [object objects] (draw object))))))
+        (clear-canvas) 
+        (doseq [object objects]
+          (draw object))))))
 
+
+(. canvas focus)

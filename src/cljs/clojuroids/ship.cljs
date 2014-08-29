@@ -37,7 +37,7 @@
 
 (defn flames [ship]
   (if (not= 0 (:thrust (first ship)))
-    (flames/create-ship-flames ship)))
+    (flames/create-ship-flames (first ship))))
 
 (defn control [input]
   (condp = input 
