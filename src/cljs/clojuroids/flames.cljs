@@ -52,8 +52,7 @@
   (let [c (if (< ttl color-change-ttl) color-2 color-1)]
     (assoc obj :color c)))
 
-(defn alive? [{ttl :ttl}]
-  (> ttl 0))
+(defn alive? [{ttl :ttl}] (> ttl 0))
 
 (def xform (comp (map dec-ttl)
                  (map color)

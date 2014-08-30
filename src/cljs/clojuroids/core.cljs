@@ -8,31 +8,44 @@
    [clojuroids.explode :as explode]
    [clojuroids.roid :as roid]
    [clojuroids.input :as input]
-   [clojuroids.collisions :as collision])
+   [clojuroids.collisions :as collisions])
   (:require-macros
    [cljs.core.async.macros :refer [alt! go-loop]]))
 
-(defn timestamp []
-  (.getTime (js/Date.)))
+(defn timestamp [] (.getTime (js/Date.)))
 
-(defn game [roids ship]
+(defn update-ship [{:keys [ship flames input]}]
+  (let [ship (->> ship
+                  (map (ship/control input))
+                 (ship/update))
+        flames (concat flames (ship/flames ship))]
+    {:ship ship :flames flames}))
+
+(defn update-shots [objs]
+  {:shots (-> (shot/handle-input objs) (shot/update))})
+
+(defn animate-frame [objs]
+  (render/animate-frame (reduce concat (vals objs))))
+
+(defn game-loop [init-objs]
   (let [input-chan (input/user-input)]
-    (go-loop [roids roids ship ship shots [] flames [] explosions [] st (timestamp)]
-      (render/animate-frame (concat roids shots ship flames explosions))
-      (let [input (alt! [input-chan] ([v] v) :default [])
-            ship (sequence (map (ship/control input)) ship)
-            ship (ship/update ship)
-            shots (shot/handle-input shots ship input)
-            shots (shot/update shots)
-            roids (roid/update roids)
-            flames (concat flames (ship/flames ship))
-            flames (flames/update flames)
-            explosions (explode/update explosions)
-            [ship shots roids flames explosions] (collision/shot-roid ship shots roids flames explosions)
-            et (timestamp) 
-            td (- et st)]
-        (<! (timeout (- 33 td)))
-        (recur roids ship shots flames explosions (timestamp))))))
+    (go-loop [objs init-objs start (timestamp)]
+      (let [objs (merge objs
+                        {:input (alt! [input-chan] ([v] v) :default [])}
+                        (update-ship objs)
+                        (update-shots objs))
+            objs (merge objs {:roids (roid/update (:roids objs))})
+            objs (merge objs {:flames (flames/update (:flames objs))})
+            objs (merge objs (collisions/shot-roid objs))
+            objs (merge objs (collisions/ship-roid objs))
+            objs (merge objs {:explosions (explode/update (:explosions objs))})
+            end (- (timestamp) start)]
+        (animate-frame objs)
+        (<! (timeout (- 33 end)))
+        (recur objs (timestamp))))))
 
 ; create some asteroids, the ship, and enter the game loop
-(game (roid/create-roids 4) (ship/create))
+(game-loop {:roids (roid/create-roids 4)
+            :ship (ship/create)})
+
+

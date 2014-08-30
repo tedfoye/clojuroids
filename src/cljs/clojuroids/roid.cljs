@@ -3,7 +3,7 @@
 
 (def size-lg 40)
 (def size-md 20)
-(def size-sm 6)
+(def size-sm 10)
 
 (def lg-roid {:sides 9 :size size-lg :vel 2 :rot 2})
 (def md-roid {:sides 7 :size size-md :vel 5 :rot 8})

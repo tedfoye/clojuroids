@@ -1,8 +1,7 @@
 (ns clojuroids.ship
   (:require
    [clojuroids.util :as u]
-   [clojuroids.flames :as flames]
-   [clojuroids.explode :as explode]))
+   [clojuroids.flames :as flames]))
 
 (def max-forward 10)
 (def max-reverse -10)

@@ -35,5 +35,4 @@
         (doseq [object objects]
           (draw object))))))
 
-
 (. canvas focus)

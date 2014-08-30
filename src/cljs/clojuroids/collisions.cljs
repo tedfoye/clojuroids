@@ -22,7 +22,7 @@
                      (some #(pt-in-rect (first objs) %) roids))
              (rest objs)))))
 
-(defn shot-roid [ship shots roids flames explosions]
+(defn shot-roid [{:keys [shots roids flames explosions]}]
   (let [hits (collisions shots roids)
         shots-hit (sequence (take-nth 2) hits)
         roids-hit (sequence (take-nth 2) (rest hits))
@@ -30,10 +30,14 @@
         flames (concat flames (flames/create-flames (first shots-hit))) 
         roids (sequence (remove #(= % (first roids-hit))) roids)
         roids (concat roids (roid/break-roid (first roids-hit)))
-        explosions (concat explosions (explode/create-explosion (first roids-hit)))
+        explosions (concat explosions (explode/create-explosion (first roids-hit)))]
+    {:shots shots :roids roids :flames flames :explosions explosions}))
 
-        ship-collisions (collisions ship roids)
+(defn ship-roid [{:keys [ship roids flames explosions]}]
+  (let [ship-collisions (collisions ship roids)
         ship-hits (sequence (take-nth 2) ship-collisions)
+        flames (concat flames (flames/create-flames (first ship-hits)))
         explosions (concat explosions (explode/create-explosion (first ship-hits) 20))
-        ship (if (seq ship-hits) nil ship)] 
-    [ship shots roids flames explosions]))
+        ship (if (seq ship-hits) nil ship)]
+    {:ship ship :roids roids :flames flames :explosions explosions}))
+

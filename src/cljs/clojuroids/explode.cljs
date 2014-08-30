@@ -3,8 +3,11 @@
 
 (def color-1 "#aaaaaa")
 (def color-2 "#808080")
-(def default-ttl 5)
 (def color-change-ttl 2)
+(def default-ttl 5)
+(def rand-ttl 10)
+(def angle-spread 50)
+(def rand-rot 5)
 
 (defn create [obj model ttl]
   (let [{:keys [angle x y rot vel]} obj
@@ -12,9 +15,9 @@
               :x x
               :y y 
               :vel vel 
-              :angle (+ angle (u/roid-rnd 50)) 
-              :rot (+ rot (u/roid-rnd 5))
-              :ttl (+ ttl (rand-int 10))}]
+              :angle (+ angle (u/roid-rnd angle-spread)) 
+              :rot (+ rot (u/roid-rnd rand-rot))
+              :ttl (+ ttl (rand-int rand-ttl))}]
     (u/model-to-points expl)))
 
 (defn color [{ttl :ttl :as obj}]
@@ -26,8 +29,7 @@
 (defn dec-ttl [{ttl :ttl :as obj}]
   (assoc obj :ttl (dec ttl)))
 
-(defn alive? [{ttl :ttl}]
-  (> ttl 0))
+(defn alive? [{ttl :ttl}] (> ttl 0))
 
 (def xform (comp (map dec-ttl)
                  (filter alive?)

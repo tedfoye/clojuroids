@@ -1,23 +1,23 @@
 (ns clojuroids.shot
   (:require [clojuroids.util :as u]))
 
-(def max-shots 2)
+(def max-shots 4)
 (def f-key 70)
 (def shot-velocity 20)
 (def offset-to-tip-of-ship 12)
-(def time-to-live 40)
+(def time-to-live 30)
 (def color-change-ttl 20)
 (def color-1 "#ADD8E6")
 (def color-2 "#4682B4")
+(def model [[0 2] [128 2] [256 2] [384 2]])
 
-(defn create [ship]
-  (let [{:keys [x y angle]} ship
-        model [[0 2] [128 2] [256 2] [384 2]]
+(defn create [{:keys [x y angle]}]
+  (let [cos-angle (u/cos angle) sin-angle (u/sin angle)
         shot {:model model
               :rect (u/rect model)
-              :x (+ x (* offset-to-tip-of-ship (u/cos angle)))
-              :y (+ y (* offset-to-tip-of-ship (u/sin angle)))
-              :vel [(* shot-velocity (u/cos angle)) (* shot-velocity (u/sin angle))]
+              :x (+ x (* offset-to-tip-of-ship cos-angle))
+              :y (+ y (* offset-to-tip-of-ship sin-angle))
+              :vel [(* shot-velocity cos-angle) (* shot-velocity sin-angle)]
               :angle angle
               :rot 0
               :ttl time-to-live}]
@@ -32,8 +32,7 @@
 (defn dec-ttl [{ttl :ttl :as obj}]
   (assoc obj :ttl (dec ttl)))
 
-(defn alive? [{ttl :ttl}]
-  (> ttl 0))
+(defn alive? [{ttl :ttl}] (> ttl 0))
 
 
 (def xform (comp (map dec-ttl)
@@ -44,10 +43,11 @@
 
 (defn update [shots] (sequence xform shots))
 
-(defn handle-input [shots ship input]
+(defn handle-input [{:keys [shots ship input]}]
   (if (and
        (= input [f-key :key-down])
-       (< (count shots) max-shots))
+       (< (count shots) max-shots)
+       (seq ship))
     (concat shots (create (first ship)))
     shots))
 
