@@ -6,13 +6,15 @@ A [ClojureScript](http://github.com/clojure/clojurescript) version of the classi
 ## Current status
 
 * Several asteroids are created and move around the playing field
+ * They break into smaller asteroids when hit 
+ * They respawn after the last one is hit
 * A ship is created and can be controlled
 * The ship can fire shots
 * Hit detection
   * between shots and roids
   * between ship and roids
-* Only 1 ship. 
-* Added effects
+* Ship respawns after being hit 
+* Effects
   * flames
   * explosions
 * Requires HTML 5
@@ -23,7 +25,6 @@ Been spending time on getting the core of the game to the point where I can star
 ## Todo
 * Enemy ships
 * Scoring
-* Spawn new ship when the player dies
 * Spawn new roids and increase the level when the field is cleared
 * Bonuses
 * Shields
