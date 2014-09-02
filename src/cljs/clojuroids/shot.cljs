@@ -34,21 +34,22 @@
 
 (defn alive? [{ttl :ttl}] (> ttl 0))
 
-
 (def xform (comp (map dec-ttl)
                  (map color)
                  (filter alive?)
                  (map u/translate)
                  (map u/model-to-points)))
 
-(defn update [shots] (sequence xform shots))
+(defn update [state]
+  (let [shots (get-in state [:objects :shots])]
+    (assoc-in state [:objects :shots] (sequence xform shots))))
 
-(defn handle-input [{:keys [shots ship input]}]
-  (if (and
-       (= input [f-key :key-down])
-       (< (count shots) max-shots)
-       (seq ship))
-    (concat shots (create (first ship)))
-    shots))
-
-
+(defn handle-input [state]
+  (let [ship (first (get-in state [:objects :ship]))
+        input (:input state)
+        shots (get-in state [:objects :shots])]
+    (if (and (= input [f-key :key-down])
+             (< (count shots) max-shots))
+      (let [shots (concat shots (create ship))]
+        (assoc-in state [:objects :shots] shots))
+      state)))

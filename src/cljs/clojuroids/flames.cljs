@@ -60,7 +60,9 @@
                  (map u/translate)
                  (map u/model-to-points)))
 
-(defn update [flames] (sequence xform flames))
+(defn update [state]
+  (let [flames (get-in state [:objects :flames])]
+    (assoc-in state [:objects :flames] (sequence xform flames))))
 
 (defn create-flames [obj]
   (if (seq obj)
