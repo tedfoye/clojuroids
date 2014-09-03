@@ -14,30 +14,48 @@
       (if (and (< l x1 r) (< b y1 t))
         [obj roid]))))
 
-(defn collisions [objs roids]
-  (loop [hits [] objs objs]
-    (if (not (seq objs))
-      hits
-      (recur (concat hits
-                     (some #(pt-in-rect (first objs) %) roids))
-             (rest objs)))))
+(defn check-collisions [state key]
+  (let [objs (get-in state [:objects key])
+        roids (get-in state [:objects :roids])]
+    (loop [hits [] objs objs]
+      (if (not (seq objs))
+        [(sequence (take-nth 2) hits)
+         (sequence (take-nth 2) (rest hits))]
+        (let [hit (some (fn [roid] (pt-in-rect (first objs) roid)) roids)
+              hits (concat hits hit)]
+          (recur hits (rest objs)))))))
 
-(defn shot-roid [{:keys [shots roids flames explosions]}]
-  (let [hits (collisions shots roids)
-        shots-hit (sequence (take-nth 2) hits)
-        roids-hit (sequence (take-nth 2) (rest hits))
-        shots (sequence (remove #(= % (first shots-hit))) shots)
-        flames (concat flames (flames/create-flames (first shots-hit))) 
-        roids (sequence (remove #(= % (first roids-hit))) roids)
-        roids (concat roids (roid/break-roid (first roids-hit)))
-        explosions (concat explosions (explode/create-explosion (first roids-hit)))]
-    {:shots shots :roids roids :flames flames :explosions explosions}))
+(defn remove-shots [state shots-hit]
+  (let [shots (get-in state [:objects :shots])
+        shots (sequence (remove #(= % (first shots-hit))) shots)]
+    (assoc-in state [:objects :shots] shots)))
 
-(defn ship-roid [{:keys [ship roids flames explosions]}]
-  (let [ship-collisions (collisions ship roids)
-        ship-hits (sequence (take-nth 2) ship-collisions)
-        flames (concat flames (flames/create-flames (first ship-hits)))
-        explosions (concat explosions (explode/create-explosion (first ship-hits) 20))
-        ship (if (seq ship-hits) nil ship)]
-    {:ship ship :roids roids :flames flames :explosions explosions}))
+(defn update-roids [state roids-hit]
+  (let [roids (get-in state [:objects :roids])
+        hit (first roids-hit)
+        roids (sequence (remove #(= % hit)) roids)
+        roids (concat roids (roid/break-roid hit))]
+    (assoc-in state [:objects :roids] roids)))
 
+(defn shot-roid [state]
+  (let [[shots-hit roids-hit] (check-collisions state :shots)]
+    (-> state
+        (remove-shots shots-hit)
+        (update-roids roids-hit)
+        (flames/create-flames shots-hit)
+        (explode/create-explosion roids-hit))))
+
+(defn ship-hit [state ship-hits]
+  (if (seq ship-hits)
+    (assoc-in state [:objects :ship] nil)
+    state))
+
+(defn ship-roid [state]
+  (let [[ship-hits roids-hit] (check-collisions state :ship)]
+    (-> state
+        (flames/create-flames ship-hits)
+        (explode/create-explosion ship-hits 20)
+        (ship-hit ship-hits))))
+
+(defn collisions [state]
+  (-> state (shot-roid) (ship-roid)))

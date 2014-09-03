@@ -31,7 +31,10 @@
 
 (def update-xform (comp (map u/translate) (map u/model-to-points)))
 
-(defn update [roids] (sequence update-xform roids))
+(defn update [state]
+  (let [roids (get-in state [:objects :roids])
+        roids (sequence update-xform roids)]
+    (assoc-in state [:objects :roids] roids)))
 
 (defn break-lg [x y]
   (let [n (inc (rand-int 4))]

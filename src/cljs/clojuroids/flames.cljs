@@ -64,9 +64,16 @@
   (let [flames (get-in state [:objects :flames])]
     (assoc-in state [:objects :flames] (sequence xform flames))))
 
-(defn create-flames [obj]
-  (if (seq obj)
-    (take flame-count (create obj angle-fn default-ttl))))
+(defn create-n [n f ttl]
+  (fn [input]
+    (take n (create input f ttl))))
+
+(def flame-xform (flatmap (create-n flame-count angle-fn default-ttl)))
+
+(defn create-flames [state obj]
+  (let [flames (get-in state [:objects :flames])
+        flames (concat flames (sequence flame-xform obj))]
+    (assoc-in state [:objects :flames] flames)))
 
 (defn create-ship-flames [ship]
   (take ship-flame-count (create ship (ship-angle-fn ship) ship-ttl)))

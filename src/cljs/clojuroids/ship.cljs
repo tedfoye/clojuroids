@@ -68,17 +68,21 @@
 (defn decrement-timer [state t]
   (assoc state :ship-timer (dec t)))
 
-(defn ship-check [state]
-  (let [n (count (get-in state [:objects :ship]))
-        t (:ship-timer state)]
-    (cond
-     (and (= 0 n) (= nil t)) (start-next-ship-timer state) 
-     (and (= 0 n) (= 0 t)) (create-new-ship state) 
-     (and (= 0 n) (> t 0)) (decrement-timer state t) 
-     :else state)))
+(defn ship-timer [state]
+  (if (not (seq (get-in state [:objects :ship])))
+    (let [t (:ship-timer state)]
+      (cond
+       (= nil t) (start-next-ship-timer state) 
+       (= 0 t) (create-new-ship state) 
+       (> t 0) (decrement-timer state t) 
+       :else state))
+    state))
 
 (defn update [state]
-  (let [ship (get-in state [:objects :ship])
-        ship (sequence update-xform ship)
-        state (assoc-in state [:objects :ship] ship)]
-    (-> state (control) (ship-flames) (ship-check))))
+  (let [ship (get-in state [:objects :ship])]
+    (if (seq ship)
+      (let [ship (sequence update-xform ship)
+            state (assoc-in state [:objects :ship] ship)]
+        (-> state (control) (ship-flames)))
+      (ship-timer state))))
+

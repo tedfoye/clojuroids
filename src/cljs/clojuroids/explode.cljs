@@ -31,20 +31,32 @@
 
 (defn alive? [{ttl :ttl}] (> ttl 0))
 
-(def xform (comp (map dec-ttl)
+(def xform-2d (comp (map dec-ttl)
                  (filter alive?)
                  (map color)
                  (map u/translate)
                  (map u/model-to-points)))
 
-(defn update [explosions] (sequence xform explosions))
+(defn update [state]
+  (let [explosions (get-in state [:objects :explosions])
+        explosions (sequence xform-2d explosions)]
+    (assoc-in state [:objects :explosions] explosions)))
 
 (defn points [obj]
   (let [model (:model obj)]
     (partition 2 1 (concat model [(first model)]))))
 
 (defn create-explosion
-  ([obj]     (create-explosion obj default-ttl))
-  ([obj ttl] (sequence (map #(create obj % ttl)) (points obj))))
+  ([state objs]
+     (create-explosion state objs default-ttl))
+  ([state objs ttl]
+     (if (seq objs)
+       (let [obj (first objs)
+             explosions (get-in state [:objects :explosions])
+             xform (map (fn [p] (create obj p ttl)))
+             data (points obj)
+             explosions (concat explosions (sequence xform data))]
+         (assoc-in state [:objects :explosions] explosions))
+       state)))
 
 
