@@ -40,7 +40,7 @@
                  (map u/translate)
                  (map u/model-to-points)))
 
-(defn update [state]
+(defn transform [state]
   (let [shots (get-in state [:objects :shots])]
     (assoc-in state [:objects :shots] (sequence xform shots))))
 
@@ -53,3 +53,6 @@
       (let [shots (concat shots (create ship))]
         (assoc-in state [:objects :shots] shots))
       state)))
+
+(defn update [state]
+  (-> state (handle-input) (transform)))
