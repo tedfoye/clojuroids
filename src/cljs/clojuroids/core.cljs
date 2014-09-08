@@ -1,6 +1,6 @@
 (ns clojuroids.core
   (:require
-   [cljs.core.async :refer [chan put! take! timeout <!]]
+   [cljs.core.async :refer [alts! timeout <!]]
    [clojuroids.render :as render]
    [clojuroids.ship :as ship]
    [clojuroids.shot :as shot]
@@ -12,7 +12,7 @@
    [clojuroids.level :as level]
    [clojuroids.saucer :as saucer])
   (:require-macros
-   [cljs.core.async.macros :refer [alt! go-loop]]))
+   [cljs.core.async.macros :refer [go-loop]]))
 
 (def frame-rate 33)
 (def init-roid-count 4)
@@ -38,8 +38,8 @@
 (defn game-loop [init-state]
   (let [input-chan (input/user-input)]
     (go-loop [state init-state start (timestamp)]
-      (let [state (merge state{:input (alt! [input-chan] ([v] v) :default nil)})
-            state (update-state state)]
+      (let [[input] (alts! [input-chan] :default nil)
+            state (-> state (assoc :input input) (update-state))]
         (animate-frame state)
         (<! (timeout (calc-timeout start)))
         (recur state (timestamp))))))
