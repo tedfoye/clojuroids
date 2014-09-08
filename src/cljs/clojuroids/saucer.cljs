@@ -15,8 +15,7 @@
               :y y 
               :vel [(* velocity cos-angle) (* velocity sin-angle)]
               :angle angle
-              :rot 0 
-              :ttl time-to-live}]
+              :rot 0}]
     [(u/model-to-points shot)]))
 
 (defn off-screen? [{x :x y :y}]
