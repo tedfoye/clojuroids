@@ -25,6 +25,19 @@
               hits (concat hits hit)]
           (recur hits (rest objs)))))))
 
+(defn collisions1 [state key1 key2]
+  (let [objs (get-in state [:objects key1])
+        objs2 (get-in state [:objects key2])]
+    (loop [hits [] objs objs]
+      (if (not (seq objs))
+        [(sequence (take-nth 2) hits)
+         (sequence (take-nth 2) (rest hits))]
+        (let [hit (some (fn [obj2] (pt-in-rect (first objs) obj2)) objs2)
+              hits (concat hits hit)]
+          (recur hits (rest objs)))))))
+
+;; shot collisions
+;;
 (defn remove-shots [state shots-hit]
   (let [shots (get-in state [:objects :shots])
         shots (sequence (remove #(= % (first shots-hit))) shots)]
@@ -45,6 +58,8 @@
         (flames/create-flames shots-hit)
         (explode/create-explosion roids-hit))))
 
+;; ship collisions
+;;
 (defn ship-hit [state ship-hits]
   (if (seq ship-hits)
     (assoc-in state [:objects :ship] nil)
@@ -57,5 +72,31 @@
         (explode/create-explosion ship-hits 20)
         (ship-hit ship-hits))))
 
+;; saucer collisions
+;;
+(defn saucer-hit [state saucer-hits]
+  (if (seq saucer-hits)
+    (assoc-in state [:objects :saucer] nil)
+    state))
+
+(defn saucer-roid [state]
+  (let [[saucer-hits roids-hit] (collisions1 state :saucer :roids)]
+    (-> state
+        (flames/create-flames saucer-hits)
+        (explode/create-explosion saucer-hits 20)
+        (saucer-hit saucer-hits))))
+
+(defn saucer-shots [state]
+  (let [[shots-hits saucer-hits] (collisions1 state :shots :saucer)]
+    (-> state
+        (flames/create-flames saucer-hits)
+        (explode/create-explosion saucer-hits 20)
+        (saucer-hit saucer-hits))))
+
+(defn saucer [state]
+  (-> state (saucer-roid) (saucer-shots)))
+
+;; collisions
+;;
 (defn collisions [state]
-  (-> state (shot-roid) (ship-roid)))
+  (-> state (shot-roid) (ship-roid) (saucer)))
