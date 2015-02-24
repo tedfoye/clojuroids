@@ -53,10 +53,11 @@
 (defn shot-roid [state]
   (let [[shots-hit roids-hit] (check-collisions state :shots)]
     (-> state
-        (remove-shots shots-hit)
-        (update-roids roids-hit)
-        (flames/create-flames shots-hit)
-        (explode/create-explosion roids-hit))))
+      (explode/create-explosion roids-hit)
+      (flames/create-flames shots-hit)
+      (remove-shots shots-hit)
+      (update-roids roids-hit)
+      )))
 
 ;; ship collisions
 ;;
@@ -100,3 +101,4 @@
 ;;
 (defn collisions [state]
   (-> state (shot-roid) (ship-roid) (saucer)))
+

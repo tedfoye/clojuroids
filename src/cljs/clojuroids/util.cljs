@@ -28,10 +28,18 @@
 
 (defn model-to-points [obj]
   (let [{:keys [model angle x y]} obj
+        pts (into [] (map (fn [[theta len]]
+                            [(+ x (* len (cos theta angle)))
+                             (- height (+ y (* len (sin theta angle))))])
+                       model))]
+    (assoc obj "points" pts)))
+
+(defn model-to-points-a [obj]
+  (let [{:keys [model angle x y]} obj
         pts (for [[theta len] model]
               [(+ x (* len (cos theta angle)))
                (- height (+ y (* len (sin theta angle))))])]
-   (assoc obj :points pts)))
+   (assoc obj "points" pts)))
 
 (defn translate [obj]
   (let [{:keys [x y angle rot] [vx vy] :vel [w h hw hh] :rect} obj

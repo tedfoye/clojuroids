@@ -1,6 +1,6 @@
 (ns clojuroids.core
   (:require
-   [cljs.core.async :refer [alts! timeout <!]]
+   [cljs.core.async :refer [alts! chan timeout <! >!]]
    [clojuroids.render :as render]
    [clojuroids.ship :as ship]
    [clojuroids.shot :as shot]
@@ -12,15 +12,12 @@
    [clojuroids.level :as level]
    [clojuroids.saucer :as saucer])
   (:require-macros
-   [cljs.core.async.macros :refer [go-loop]]))
+   [cljs.core.async.macros :refer [go go-loop]]))
 
 (def frame-rate 33)
 (def init-roid-count 4)
 
 (defn timestamp [] (.getTime (js/Date.)))
-
-(defn animate-frame [{objects :objects}]
-  (render/animate-frame (reduce concat (vals objects))))
 
 (defn update-state [state]
   (-> state
@@ -33,23 +30,25 @@
       (level/check)
       (saucer/update)))
 
-(defn calc-timeout [start] (- frame-rate (- (timestamp) start))) 
+(declare game-loop)
 
-(defn game-loop [init-state]
-  (let [input-chan (input/user-input)]
-    (go-loop [state init-state start (timestamp)]
-      (let [[input] (alts! [input-chan] :default nil)
-            state (-> state (assoc :input input) (update-state))]
-        (animate-frame state)
-        (<! (timeout (calc-timeout start)))
-        (recur state (timestamp))))))
+(defn animate-frame [state time]
+  (. js/window
+    (requestAnimationFrame
+      (fn [t]
+        (render/animate-frame (reduce concat (vals (:objects state))))        
+        (game-loop state time)))))
 
-;; create some asteroids, the ship, a saucer which doesn't do much yet
-;; and enter the game loop
-(game-loop {:objects {:roids (roid/create-roids init-roid-count)
+(defn game-loop [state time]
+  (go
+    (<! (timeout (- frame-rate (- (timestamp) time))))
+    (-> state (update-state) (animate-frame (timestamp)))))
+
+(def state {:objects {:roids (roid/create-roids init-roid-count)
                       :ship (ship/create)
                       :saucer (saucer/create 100 100 0)}
             :last-roid-count init-roid-count})
 
+(trampoline game-loop state (timestamp))
 
 

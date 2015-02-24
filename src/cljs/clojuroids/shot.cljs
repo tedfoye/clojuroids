@@ -1,5 +1,6 @@
 (ns clojuroids.shot
-  (:require [clojuroids.util :as u]))
+  (:require [clojuroids.util :as u]
+            [clojuroids.input :as input]))
 
 (def max-shots 4)
 (def f-key 70)
@@ -9,7 +10,7 @@
 (def color-change-ttl 20)
 (def color-1 "#ADD8E6")
 (def color-2 "#4682B4")
-(def model [[0 2] [128 2] [256 2] [384 2]])
+(def model [[0 1] [128 1] [256 1] [384 1]])
 
 (defn create [{:keys [x y angle]}]
   (let [cos-angle (u/cos angle) sin-angle (u/sin angle)
@@ -27,7 +28,7 @@
   (let [c (if (< ttl color-change-ttl)
             color-2
             color-1)]
-    (assoc obj :color c)))
+    (assoc obj "color" c)))
 
 (defn dec-ttl [{ttl :ttl :as obj}]
   (assoc obj :ttl (dec ttl)))
@@ -35,10 +36,10 @@
 (defn alive? [{ttl :ttl}] (> ttl 0))
 
 (def xform (comp (map dec-ttl)
-                 (map color)
-                 (filter alive?)
+                 (map color)                 
                  (map u/translate)
-                 (map u/model-to-points)))
+                 (map u/model-to-points)
+                 (filter alive?)))
 
 (defn transform [state]
   (let [shots (get-in state [:objects :shots])]
@@ -46,11 +47,11 @@
 
 (defn handle-input [state]
   (let [ship (first (get-in state [:objects :ship]))
-        input (:input state)
+        fire (get @input/state f-key)
         shots (get-in state [:objects :shots])]
-    (if (and (= input [f-key :key-down])
-             (< (count shots) max-shots))
+    (if (and (= fire :key-down) (< (count shots) max-shots))
       (let [shots (concat shots (create ship))]
+        (swap! input/state assoc f-key :key-up)
         (assoc-in state [:objects :shots] shots))
       state)))
 

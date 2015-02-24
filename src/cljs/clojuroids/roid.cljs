@@ -5,9 +5,9 @@
 (def size-md 20)
 (def size-sm 10)
 
-(def lg-roid {:sides 9 :size size-lg :vel 2 :rot 2})
-(def md-roid {:sides 7 :size size-md :vel 5 :rot 8})
-(def sm-roid {:sides 5 :size size-sm :vel 8 :rot 15})
+(def lg-roid {:sides 9 :size size-lg :vel 1 :rot 2})
+(def md-roid {:sides 7 :size size-md :vel 3 :rot 8})
+(def sm-roid {:sides 5 :size size-sm :vel 5 :rot 15})
 
 (defn make-model [sides size]
   (for [i (range sides)]

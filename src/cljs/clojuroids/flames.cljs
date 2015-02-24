@@ -50,7 +50,7 @@
 
 (defn color [{ttl :ttl :as obj}]
   (let [c (if (< ttl color-change-ttl) color-2 color-1)]
-    (assoc obj :color c)))
+    (assoc obj "color" c)))
 
 (defn alive? [{ttl :ttl}] (> ttl 0))
 
@@ -68,11 +68,18 @@
   (fn [input]
     (take n (create input f ttl))))
 
-(def flame-xform (flatmap (create-n flame-count angle-fn default-ttl)))
+(defn create-n2 [f ttl]
+  (fn [input]
+    (create input f ttl)))
 
-(defn create-flames [state obj]
+(def flame-xform (comp
+                   (mapcat (create-n2 angle-fn default-ttl))
+                   (take flame-count)))
+
+(defn create-flames [state obj]  
   (let [flames (get-in state [:objects :flames])
-        flames (concat flames (sequence flame-xform obj))]
+        tmp (sequence flame-xform obj)
+        flames (concat flames (sequence flame-xform obj))]    
     (assoc-in state [:objects :flames] flames)))
 
 (defn create-ship-flames [ship]

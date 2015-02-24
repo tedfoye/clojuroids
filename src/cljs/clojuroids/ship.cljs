@@ -1,7 +1,8 @@
 (ns clojuroids.ship
   (:require
    [clojuroids.util :as u]
-   [clojuroids.flames :as flames]))
+   [clojuroids.flames :as flames]
+   [clojuroids.input :as input]))
 
 (def time-to-next-ship 100)
 (def max-forward 10)
@@ -41,20 +42,26 @@
         (assoc-in state [:objects :flames] flames))
       state)))
 
+(defn rotation []
+  (let [left (get @input/state 74)
+        right (get @input/state 76)]
+    (condp = :key-down
+      left 10
+      right -10
+      0)))
+
+(defn thrust []
+  (let [forward (get @input/state 73)
+        reverse (get @input/state 75)]
+    (condp = :key-down
+      forward 0.3
+      reverse -0.3
+      0)))
+
 (defn control [state]
   (let [ship (first (get-in state [:objects :ship]))
-        input (:input state)
-        movement (condp = input 
-                   [74 :key-down] {:rot 10} 
-                   [74 :key-up]   {:rot 0} 
-                   [76 :key-down] {:rot -10} 
-                   [76 :key-up]   {:rot 0} 
-                   [73 :key-down] {:thrust 0.5} 
-                   [73 :key-up]   {:thrust 0} 
-                   [75 :key-down] {:thrust -0.5}
-                   [75 :key-up]   {:thrust 0}
-                   {})
-        ship (merge ship movement)]
+        ship (assoc ship :rot (rotation))
+        ship (assoc ship :thrust (thrust))]
     (assoc-in state [:objects :ship] [ship])))
 
 (defn start-next-ship-timer [state]
